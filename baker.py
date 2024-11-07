@@ -58,4 +58,4 @@ p = 0.5  # Puedes ajustar este valor según lo que hayas usado en la encriptaci�
 mu = 3.9  # Puedes ajustar este valor también
 
 # Llamar a la función con la imagen cifrada
-reverse_image_encryption("image_modified.png", p, mu)
+reverse_image_encryption("imagen_baja_resolucion.jpg", p, mu)
