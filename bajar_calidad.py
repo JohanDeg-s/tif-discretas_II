@@ -1,47 +1,38 @@
-import pywt        
-import cv2         
-import numpy as np 
+import cv2
+import numpy as np
 
-def bajar_resolucion(img_path, target_size=(500, 500)):
-
-    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+def bajar_resolucion(img_path, target_size=(200, 200)):
+    img = cv2.imread(img_path)
     if img is None:
         raise FileNotFoundError(f"No se pudo cargar la imagen en la ruta especificada: {img_path}")
     
-
     original_shape = img.shape
     
-    img_redimensionada = cv2.resize(img, target_size)
+
+    img_bn = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
 
-    coeficientes = pywt.wavedec2(img_redimensionada, 'haar', level=1)
-    subimagen_baja_res = coeficientes[0]
-    detalles = coeficientes[1:]
+    img_redimensionada = cv2.resize(img_bn, target_size)
     
 
-    cv2.imwrite("imagen_baja_resolucion.jpg", np.clip(subimagen_baja_res, 0, 255).astype(np.uint8))
+    cv2.imwrite("imagen_redimensionada_bn.jpg", img_redimensionada)
     
-    print("Subimagen Baja Resolución guardada como 'imagen_baja_resolucion.jpg'")
-    print("\nCoeficientes de Detalle:")
-    for i, detalle in enumerate(detalles, start=1):
-        print(f"Detalle Nivel {i} (Horizontal, Vertical, Diagonal):\n", detalle)
+    print("Imagen redimensionada y convertida a blanco y negro guardada como 'imagen_redimensionada_bn.jpg'")
     
-    return subimagen_baja_res, detalles, original_shape
+    return img_redimensionada, original_shape
 
-def subir_resolucion(subimagen_baja_res, detalles, original_shape):
-    
-    coeficientes = [subimagen_baja_res] + detalles
+def subir_resolucion(img_redimensionada, original_shape):
 
-    img_reconstruida = pywt.waverec2(coeficientes, 'haar')
-    img_reconstruida = np.clip(img_reconstruida, 0, 255).astype(np.uint8)
+    img_restaurada = cv2.resize(img_redimensionada, (original_shape[1], original_shape[0]))
     
-    img_reconstruida_original = cv2.resize(img_reconstruida, (original_shape[1], original_shape[0]))
+    cv2.imwrite("imagen_restaurada.jpg", img_restaurada)
     
-    cv2.imwrite("imagen_reconstruida.jpg", img_reconstruida_original)
+    print("Imagen restaurada al tamaño original guardada como 'imagen_restaurada.jpg'")
     
-    print("Imagen reconstruida guardada como 'imagen_reconstruida.jpg'")
-    return img_reconstruida_original
+    return img_restaurada
 
-imagen = 'prueba.jpg'  
-subimagen_baja_res, detalles, original_shape = bajar_resolucion(imagen, target_size=(500, 500))
-subir_resolucion(subimagen_baja_res, detalles, original_shape)
+imagen = 'prueba.jpg'
+# Redimensionar a 200x200 píxeles en blanco y negro
+img_redimensionada, original_shape = bajar_resolucion(imagen, target_size=(200, 200))
+
+subir_resolucion(img_redimensionada, original_shape)
