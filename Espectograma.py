@@ -4,7 +4,7 @@ import math
 import wave
 import cmath
 
-ruta = 'a.jpg'
+ruta = 'imagen_redimensionada_bn.jpg'
 imagen = imageio.imread(ruta, mode='F')
 imagen = imagen[::2, ::2]  
 
