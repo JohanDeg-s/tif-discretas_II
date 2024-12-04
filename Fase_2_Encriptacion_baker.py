@@ -8,7 +8,7 @@ for i in range(longitud):
     n.append(valor)
 
 
-image = cv2.imread("burbuja.png")
+image = cv2.imread("imagen_redimensionada_bn.jpg")
 N = image.shape[0]  
 
 new_image = np.zeros_like(image)

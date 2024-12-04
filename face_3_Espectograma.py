@@ -55,7 +55,7 @@ def espectrograma_a_audio(espectrograma, seg=5, frecuencia_muestreo=44100):
     return audio
 
 
-audio_data = espectrograma_a_audio(espectrograma_dft, duracion_segundos=30)
+audio_data = espectrograma_a_audio(espectrograma_dft, duracion_segundos=40)
 
 with wave.open('audio2.wav', 'wb') as archivo_wav:
     archivo_wav.setnchannels(1)  
