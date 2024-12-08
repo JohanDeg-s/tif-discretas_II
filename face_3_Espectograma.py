@@ -4,7 +4,7 @@ import math
 import wave
 import cmath
 
-ruta = 'imagen_redimensionada_bn.jpg'
+ruta = 'a.jpg'
 imagen = imageio.imread(ruta, mode='F')
 imagen = imagen[::2, ::2]  
 
@@ -29,11 +29,11 @@ def dft2d(imagen):
 espectrograma_dft = dft2d(imagen)
 espectrograma_log = np.log(np.abs(espectrograma_dft) + 1)
 
-np.save('espectrograma.npy', espectrograma_log)
+np.save('a-espectrograma.npy', espectrograma_log)
 print("Espectrograma guardado como archivo .npy")
 
 espectrograma_normalizado = np.uint8(espectrograma_log / np.max(espectrograma_log) * 255)
-imageio.imwrite('espectrograma.png', espectrograma_normalizado)
+imageio.imwrite('a-espectrograma.png', espectrograma_normalizado)
 print("Espectrograma guardado como imagen PNG")
 
 
@@ -43,7 +43,8 @@ def espectrograma_a_audio(espectrograma, seg=5, frecuencia_muestreo=44100):
     tiempo_total = np.linspace(0, seg, num_muestras)
     audio = np.zeros(num_muestras)
 
-    for v in range(M):
+    for u in range(N):
+        for v in range (M):
             frecuencia = (u + 1) * (v + 1) / (N + M)  
             angulo = 2 * math.pi * frecuencia * tiempo_total
             componente = np.real(espectrograma[u, v]) * np.cos(angulo) 
@@ -55,7 +56,8 @@ def espectrograma_a_audio(espectrograma, seg=5, frecuencia_muestreo=44100):
     return audio
 
 
-audio_data = espectrograma_a_audio(espectrograma_dft, duracion_segundos=40)
+
+audio_data = espectrograma_a_audio(espectrograma_dft, seg=1)
 
 with wave.open('audio2.wav', 'wb') as archivo_wav:
     archivo_wav.setnchannels(1)  
@@ -64,4 +66,5 @@ with wave.open('audio2.wav', 'wb') as archivo_wav:
     archivo_wav.writeframes(audio_data.tobytes())
 
 print("Audio guardado")
+
 
