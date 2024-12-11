@@ -109,47 +109,47 @@ audio_a_espectrograma(
 
 
 # Espectograma -> Imagen
-
+#funciona
 import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
-def reconstruir_imagen(output_prefix, ruta_salida):
+from scipy.io.wavfile import read
+from scipy.signal import spectrogram
+from PIL import Image
 
-    espectro_rojo = np.load(f"{output_prefix}_rojo.npy")
-    espectro_verde = np.load(f"{output_prefix}_verde.npy")
-    espectro_azul = np.load(f"{output_prefix}_azul.npy")
+def generar_espectrograma_audio(audio_ruta, color="R", tamaño=250):
+    sr, audio = read(audio_ruta)
 
-    espectro_rojo = np.fft.ifftshift(espectro_rojo)
-    espectro_verde = np.fft.ifftshift(espectro_verde)
-    espectro_azul = np.fft.ifftshift(espectro_azul)
+    if len(audio.shape) > 1:  # Si el audio es estéreo, se toma solo el primer canal
+        audio = audio[:, 0]
 
-    canal_rojo = np.fft.ifft2(espectro_rojo).real
-    canal_verde = np.fft.ifft2(espectro_verde).real
-    canal_azul = np.fft.ifft2(espectro_azul).real
+    frecuencias, tiempos, Sxx = spectrogram(audio, fs=sr, nperseg=1024, noverlap=512)
 
-    def normalizar(canal):
-        canal -= canal.min()
-        canal /= canal.max()
-        canal *= 255
-        return canal.astype(np.uint8)
+    espectro = np.log(1 + Sxx)
 
-    canal_rojo = normalizar(canal_rojo)
-    canal_verde = normalizar(canal_verde)
-    canal_azul = normalizar(canal_azul)
+    espectro_redimensionado = np.resize(espectro, (tamaño, tamaño))
 
-    imagen_reconstruida = np.stack((canal_rojo, canal_verde, canal_azul), axis=-1)
+    espectro_shifted = np.fft.fftshift(espectro_redimensionado)
 
-    Image.fromarray(imagen_reconstruida).save(ruta_salida)
-    plt.imshow(imagen_reconstruida)
-    plt.axis('off')
-    plt.title("Imagen Reconstruida")
-    plt.show()
+    if color == "R":
+        np.save(f"z2-espectrograma_rojo.npy", espectro_shifted)
+    elif color == "G":
+        np.save(f"z2-espectrograma_verde.npy", espectro_shifted)
+    elif color == "B":
+        np.save(f"z2-espectrograma_azul.npy", espectro_shifted)
 
-reconstruir_imagen("z2-espectrograma", "z3-imagen_reconstruida.png")
+    return espectro_redimensionado
 
+def main():
+    ruta_audio_rojo  = "z1-audio_rojo_separado.wav"  
+    ruta_audio_verde = "z1-audio_verde_separado.wav"  
+    ruta_audio_azul  = "z1-audio_azul_separado.wav"  
 
+    generar_espectrograma_audio(ruta_audio_rojo, color="R")
+    generar_espectrograma_audio(ruta_audio_verde, color="G")
+    generar_espectrograma_audio(ruta_audio_azul, color="B")
 
-
+if __name__ == "__main__":
+    main()
 
 
 
