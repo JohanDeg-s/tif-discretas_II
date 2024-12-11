@@ -1,0 +1,45 @@
+# comparar audios
+
+import librosa
+import numpy as np
+from scipy.spatial.distance import cosine
+
+def cargar_audio(ruta):
+    audio, sr = librosa.load(ruta, sr=None)
+    return audio, sr
+
+def comparar_audios(audio1, audio2):
+    min_len = min(len(audio1), len(audio2))
+    audio1 = audio1[:min_len]
+    audio2 = audio2[:min_len]
+
+    espectro1 = np.abs(librosa.stft(audio1))
+    espectro2 = np.abs(librosa.stft(audio2))
+
+    espectro1_prom = np.mean(espectro1, axis=1)
+    espectro2_prom = np.mean(espectro2, axis=1)
+
+    similitud = 1 - cosine(espectro1_prom, espectro2_prom)
+    return similitud
+
+# Rutas de los archivos de audio
+azul_espectograma_original  = 'x2-audio_azul.wav'
+azul_reconstruido_audio     = 'z1-audio_azul_separado.wav'
+rojo_espectograma_original  = 'x2-audio_rojo.wav'
+rojo_reconstruido_audio     = 'z1-audio_rojo_separado.wav'
+verde_espectograma_original = 'x2-audio_verde.wav'
+verde_reconstruido_audio    = 'z1-audio_verde_separado.wav'
+
+# Cargar y comparar
+azul_espectograma, sr1 = cargar_audio (azul_espectograma_original)
+azul_reconstruido, sr2 = cargar_audio (azul_reconstruido_audio)
+rojo_espectograma, sr1 = cargar_audio (rojo_espectograma_original)
+rojo_reconstruido, sr2 = cargar_audio (rojo_reconstruido_audio)
+verde_espectograma, sr1 = cargar_audio(verde_espectograma_original)
+verde_reconstruido, sr2 = cargar_audio(verde_reconstruido_audio)
+
+
+
+print (f"Azul:  {comparar_audios(azul_espectograma  , azul_reconstruido)}  \n"
+       f"Rojo:  {comparar_audios(rojo_espectograma  , rojo_reconstruido)}  \n"
+       f"Verde: {comparar_audios(verde_espectograma , verde_reconstruido)} \n")
