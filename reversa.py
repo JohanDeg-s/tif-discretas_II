@@ -1,157 +1,70 @@
-# Separar audios
-
-from pydub import AudioSegment
-audio_combinado = AudioSegment.from_wav("x3-audio_combinado.wav")
-duracion_canal_ms = 1417.233
-
-audio_rojo = audio_combinado[:duracion_canal_ms]
-audio_verde = audio_combinado[duracion_canal_ms:2*duracion_canal_ms]
-audio_azul = audio_combinado[2*duracion_canal_ms:3*duracion_canal_ms]
-
-audio_rojo.export ("z1-audio_rojo_separado.wav"  , format="wav")
-audio_verde.export("z1-audio_verde_separado.wav" , format="wav")
-audio_azul.export ("z1-audio_azul_separado.wav"  , format="wav")
-
-print("Audios separados y exportados correctamente.")
-
-
-
-
-
-
-
-
-
-# Audio -> Espectograma
-
 import numpy as np
-import wave
-import matplotlib.pyplot as plt
-
-def audio_a_espectrograma(audio_path, output_prefix, sample_rate=44100, window_size=1024, overlap=512, color='viridis'):
-    with wave.open(audio_path, 'r') as audio_file:
-        n_channels = audio_file.getnchannels()
-        sample_width = audio_file.getsampwidth()
-        n_frames = audio_file.getnframes()
-        framerate = audio_file.getframerate()
-
-        if framerate != sample_rate:
-            print(f"Advertencia: Frecuencia de muestreo esperada ({sample_rate}) "
-                  f"no coincide con la del archivo ({framerate}).")
-        
-        audio_frames = audio_file.readframes(n_frames)
-        dtype = np.int16 if sample_width == 2 else np.int8
-        audio_data = np.frombuffer(audio_frames, dtype=dtype)
-
-        if n_channels > 1:
-            audio_data = audio_data.reshape(-1, n_channels)
-            audio_data = audio_data[:, 0]
-        
-        espectrograma = []
-
-        for start in range(0, len(audio_data) - window_size, window_size - overlap):
-            ventana = audio_data[start:start + window_size]
-            espectro = np.fft.fft(ventana)
-            espectrograma.append(np.abs(espectro))
-
-        espectrograma = np.array(espectrograma).T
-
-        espectrograma_path = f"{output_prefix}.npy"
-        np.save(espectrograma_path, espectrograma)
-        print(f"Espectrograma guardado en: {espectrograma_path}")
-        
-        plt.figure(figsize=(10, 6))
-        
-        if color == 'blue':
-            cmap = 'Blues'
-        elif color == 'red':
-            cmap = 'Reds'
-        elif color == 'green':
-            cmap = 'Greens'
-        else:
-            cmap = 'viridis'
-
-        plt.imshow(np.log1p(espectrograma), aspect='auto', cmap=cmap, origin='lower')
-        plt.axis('off')  # Eliminar los ejes y etiquetas
-        imagen_path = f"{output_prefix}.png"
-        plt.savefig(imagen_path, bbox_inches='tight', pad_inches=0)
-        plt.close()
-        print(f"Imagen del espectrograma guardada en: {imagen_path}")
-
-audio_a_espectrograma(
-    audio_path='z1-audio_azul_separado.wav',  # Ruta al archivo de audio
-    output_prefix='z2-espectrograma_azul',       # Prefijo de salida
-    sample_rate=44100,                        # Frecuencia de muestreo
-    color='blue'                              # Color del espectrograma
-)
-
-audio_a_espectrograma(
-    audio_path='z1-audio_rojo_separado.wav',  # Ruta al archivo de audio
-    output_prefix='z2-espectrograma_rojo',       # Prefijo de salida
-    sample_rate=44100,                        # Frecuencia de muestreo
-    color='red'                               # Color del espectrograma
-)
-
-audio_a_espectrograma(
-    audio_path='z1-audio_verde_separado.wav', # Ruta al archivo de audio
-    output_prefix='z2-espectrograma_verde',      # Prefijo de salida
-    sample_rate=44100,                        # Frecuencia de muestreo
-    color='green'                             # Color del espectrograma
-)
-
-
-
-
-
-
-
-
-
-
-# Espectograma -> Imagen
-#funciona
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.io.wavfile import read
-from scipy.signal import spectrogram
 from PIL import Image
+import librosa
+import matplotlib.pyplot as plt
 
-def generar_espectrograma_audio(audio_ruta, color="R", tamaño=250):
-    sr, audio = read(audio_ruta)
+def audio_a_espectrograma(ruta_audio, n_fft=2048, hop_length=512):
+    try:
+        # Cargar el archivo de audio
+        y, sr = librosa.load(ruta_audio, sr=None)  # Mantener la frecuencia de muestreo original
+        
+        # Normalizar la señal de audio
+        y /= np.max(np.abs(y))
 
-    if len(audio.shape) > 1:  # Si el audio es estéreo, se toma solo el primer canal
-        audio = audio[:, 0]
+        # Calcular la STFT
+        espectrograma = librosa.stft(y, n_fft=n_fft, hop_length=hop_length)
+        
+        # Obtener magnitud y fase
+        magnitud = np.abs(espectrograma)
+        fase = np.angle(espectrograma)
+        
+        return magnitud, fase
+    except Exception as e:
+        print(f"Error al procesar {ruta_audio}: {e}")
+        return None, None
 
-    frecuencias, tiempos, Sxx = spectrogram(audio, fs=sr, nperseg=1024, noverlap=512)
+def visualizar_espectrogramas(magnitud_imagen, magnitud_audio):
+    plt.figure(figsize=(12, 6))
 
-    espectro = np.log(1 + Sxx)
+    plt.subplot(1, 2, 1)
+    plt.title('Espectrograma de la Imagen')
+    plt.imshow(np.log(1 + magnitud_imagen), aspect='auto', cmap='gray')
+    plt.colorbar()
 
-    espectro_redimensionado = np.resize(espectro, (tamaño, tamaño))
+    plt.subplot(1, 2, 2)
+    plt.title('Espectrograma del Audio')
+    plt.imshow(np.log(1 + magnitud_audio), aspect='auto', cmap='gray')
+    plt.colorbar()
 
-    espectro_shifted = np.fft.fftshift(espectro_redimensionado)
+    plt.tight_layout()
+    plt.show()
 
-    if color == "R":
-        np.save(f"z2-espectrograma_rojo.npy", espectro_shifted)
-    elif color == "G":
-        np.save(f"z2-espectrograma_verde.npy", espectro_shifted)
-    elif color == "B":
-        np.save(f"z2-espectrograma_azul.npy", espectro_shifted)
+def reconstruir_imagen(magnitud, fase, dimensiones_originales):
+    espectrograma_reconstruido = magnitud * np.exp(1j * fase)
+    audio_reconstruido = librosa.istft(espectrograma_reconstruido)
 
-    return espectro_redimensionado
+    # Reescalar el audio reconstruido a las dimensiones originales
+    imagen_reconstruida = np.resize(audio_reconstruido, dimensiones_originales)
+    return imagen_reconstruida
 
-def main():
-    ruta_audio_rojo  = "z1-audio_rojo_separado.wav"  
-    ruta_audio_verde = "z1-audio_verde_separado.wav"  
-    ruta_audio_azul  = "z1-audio_azul_separado.wav"  
+def normalizar_imagen(imagen):
+    imagen -= imagen.min()
+    imagen /= imagen.max()
+    imagen *= 255
+    return imagen.astype(np.uint8)
 
-    generar_espectrograma_audio(ruta_audio_rojo, color="R")
-    generar_espectrograma_audio(ruta_audio_verde, color="G")
-    generar_espectrograma_audio(ruta_audio_azul, color="B")
+# Cargar el espectrograma de la imagen desde el archivo .npy
+magnitud_imagen = np.load('a-imagen_magnitud.npy')
+fase_imagen = np.load('a-imagen_fase.npy')
+dimensiones_originales = np.load('a-imagen_dimensiones.npy')  # Cargar dimensiones originales
 
-if __name__ == "__main__":
-    main()
+# Reconstruir la imagen
+imagen_reconstruida = reconstruir_imagen(magnitud_imagen, fase_imagen, dimensiones_originales)
 
-
+# Normalizar y guardar la imagen reconstruida
+imagen_reconstruida_normalizada = normalizar_imagen(imagen_reconstruida)
+Image.fromarray(imagen_reconstruida_normalizada).save('a-imagen_reconstruida.png')
+print('Imagen reconstruida guardada como imagen_reconstruida.png.')
 
 
 
