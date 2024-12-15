@@ -1,0 +1,28 @@
+#Frecuncia de onda
+
+import numpy as np
+import matplotlib.pyplot as plt
+import librosa
+
+# Función para representar la forma de onda de un archivo de audio
+def representar_forma_onda(ruta_audio):
+    # Cargar el archivo de audio
+    senal, sr = librosa.load(ruta_audio, sr=None)  # Cargar el audio manteniendo la frecuencia de muestreo original
+
+    # Crear un vector de tiempo
+    tiempo = np.linspace(0, len(senal) / sr, num=len(senal))
+
+    # Graficar la forma de onda
+    plt.figure(figsize=(15, 5))
+    plt.plot(tiempo, senal, color='b')
+    plt.title('Forma de Onda del Audio')
+    plt.xlabel('Tiempo (s)')
+    plt.ylabel('Amplitud')
+    plt.grid()
+    plt.xlim(0, len(senal) / sr)  # Limitar el eje x al tiempo total del audio
+    plt.show()
+
+# Ejecución
+if __name__ == "__main__":
+    ruta_audio = 'audio_de_imagen.wav'  # Cambia esto a la ruta de tu archivo de audio
+    representar_forma_onda(ruta_audio)
