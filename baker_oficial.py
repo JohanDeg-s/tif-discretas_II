@@ -145,9 +145,9 @@ def calculate_psnr(original, reconstructed):
     return 10 * np.log10((max_pixel ** 2) / mse)
 
 def main():
-    """
+    
         # Cargar imagen encriptada
-    encrypted_image_path = "imagenencriptada.jpg"
+    encrypted_image_path = r"C:\Users\USER\Documents\ultimo tif\RESULTADOS\cameraman_encrypted.png"
     
     # Leer la imagen encriptada
     encrypted_image = np.array(Image.open(encrypted_image_path).convert('L'))
@@ -175,7 +175,8 @@ def main():
         
     except Exception as e:
         print(f"Error procesando {encrypted_image_path}: {e}")
-"""
+#fin DESECNRIPTADO
+
     os.makedirs('test_images', exist_ok=True)
     os.makedirs('RESULTADOS', exist_ok=True)
     
@@ -196,7 +197,6 @@ def main():
         a=0.321,     # Baker map parameter
         b=0.823      # Baker map parameter
     )
-    
 
     for image_path in test_images:
         try:
