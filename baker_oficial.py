@@ -6,56 +6,38 @@ import os
 
 class ChaoticImageEncryption:
     def __init__(self, r=3.93, x0=0.732, a=0.321, b=0.823):
-        """
-        Initialize encryption parameters based on the research paper
+
+        self.r = r 
+        self.x0 = x0  
         
-        :param r: Logistic map control parameter (default from paper)
-        :param x0: Logistic map initial condition (default from paper)
-        :param a: Baker map parameter a
-        :param b: Baker map parameter b
-        """
-        # Logistic Map Parameters
-        self.r = r  # Control parameter (between 3.56 and 3.82 for chaotic behavior)
-        self.x0 = x0  # Initial condition
-        
-        # Baker Map Parameters
+     
         self.a = a
         self.b = b
     
     def logistic_map_sequence(self, size):
-        """
-        Generate pseudo-random sequence using Logistic Map
-        
-        :param size: Size of the sequence (tuple of rows, columns)
-        :return: Numpy array of binary sequence
-        """
+       
         rows, cols = size
         sequence = np.zeros((rows, cols), dtype=np.float32)
         x = self.x0
         
         for i in range(rows):
             for j in range(cols):
-                # Logistic map equation: X(n+1) = r * X(n) * (1 - X(n))
+               
                 x = self.r * x * (1 - x)
                 
-                # Quantization as per the paper's equation
+        
                 sequence[i, j] = 1 if x > 0.5 else 0
         
         return sequence
     
     def baker_map_sequence(self, size):
-        """
-        Generate pseudo-random sequence using Baker Map
-        
-        :param size: Size of the sequence (tuple of rows, columns)
-        :return: Numpy array of binary sequence
-        """
+       
         rows, cols = size
         sequence = np.zeros((rows, cols), dtype=np.float32)
         
         for i in range(rows):
             for j in range(cols):
-                # Baker map transformation as described in the paper
+               
                 if self.a < 0.5:
                     x_new = 2 * self.a
                     y_new = self.b / 2
@@ -63,18 +45,13 @@ class ChaoticImageEncryption:
                     x_new = 2 - 2 * self.a
                     y_new = 1 - self.b / 2
                 
-                # Quantization
+                
                 sequence[i, j] = 1 if y_new > 0.5 else 0
         
         return sequence
     
     def encrypt(self, image):
-        """
-        Encrypt the image using two-stage chaotic encryption
-        
-        :param image: Input image as numpy array
-        :return: Encrypted image
-        """
+ 
         # Step 1: First encryption using Logistic Map
         logistic_sequence = self.logistic_map_sequence(image.shape)
         logistic_encrypted = np.bitwise_xor(
@@ -92,12 +69,7 @@ class ChaoticImageEncryption:
         return final_encrypted
     
     def decrypt(self, encrypted_image):
-        """
-        Decrypt the image using reverse of encryption process
-        
-        :param encrypted_image: Encrypted image as numpy array
-        :return: Decrypted image
-        """
+    
         # Reverse Baker Map encryption
         baker_sequence = self.baker_map_sequence(encrypted_image.shape)
         baker_decrypted = np.bitwise_xor(
@@ -115,12 +87,7 @@ class ChaoticImageEncryption:
         return decrypted_image
 
 def histogram_analysis(original_image, encrypted_image):
-    """
-    Perform histogram analysis as described in the paper
-    
-    :param original_image: Original image numpy array
-    :param encrypted_image: Encrypted image numpy array
-    """
+   
     plt.figure(figsize=(12, 6))
     
     # Original Image Histogram
@@ -147,12 +114,7 @@ def histogram_analysis(original_image, encrypted_image):
     plt.show()
 
 def correlation_analysis(image):
-    """
-    Compute correlation between adjacent pixels
-    
-    :param image: Input image numpy array
-    :return: Correlation coefficients
-    """
+  
     def compute_correlation(x, y):
         """Compute correlation coefficient between two arrays"""
         return np.corrcoef(x.ravel(), y.ravel())[0, 1]
@@ -177,34 +139,20 @@ def correlation_analysis(image):
     return correlations
 
 def calculate_psnr(original, reconstructed):
-    """
-    Calculate Peak Signal to Noise Ratio (PSNR)
-    
-    :param original: Original image numpy array
-    :param reconstructed: Reconstructed image numpy array
-    :return: PSNR value
-    """
+
     mse = np.mean((original.astype(float) - reconstructed.astype(float)) ** 2)
     max_pixel = 255.0
     return 10 * np.log10((max_pixel ** 2) / mse)
 
 def main():
-    # Ensure test images and results directories exist
-    os.makedirs('test_images', exist_ok=True)
-    os.makedirs('RESULTADOS', exist_ok=True)
+    """
+        # Cargar imagen encriptada
+    encrypted_image_path = "imagenencriptada.jpg"
     
-    # Create a random test image if no images exist
-    if not os.listdir('test_images'):
-        test_image = np.random.randint(0, 256, (256, 256), dtype=np.uint8)
-        plt.imsave('test_images/test_image.png', test_image, cmap='gray')
+    # Leer la imagen encriptada
+    encrypted_image = np.array(Image.open(encrypted_image_path).convert('L'))
     
-    # Test images list
-    test_images = [
-        os.path.join('test_images', img) for img in os.listdir('test_images') 
-        if img.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff'))
-    ]
-    
-    # Encryption parameters from the paper
+    # Configurar parámetros de encriptación (si es necesario)
     encryption = ChaoticImageEncryption(
         r=3.93,      # Logistic map parameter
         x0=0.732,    # Initial condition
@@ -212,7 +160,44 @@ def main():
         b=0.823      # Baker map parameter
     )
     
-    # Process each image
+    try:
+        # Desencriptar la imagen
+        decrypted_image = encryption.decrypt(encrypted_image)
+        
+        # Guardar imagen desencriptada
+        decrypted_filename = "imagen_desencriptada.png"
+        plt.imsave(decrypted_filename, decrypted_image, cmap='gray')
+        
+        # Mostrar la imagen desencriptada
+        plt.imshow(decrypted_image, cmap='gray')
+        plt.title('Desencriptada')
+        plt.show()
+        
+    except Exception as e:
+        print(f"Error procesando {encrypted_image_path}: {e}")
+"""
+    os.makedirs('test_images', exist_ok=True)
+    os.makedirs('RESULTADOS', exist_ok=True)
+    
+
+    if not os.listdir('test_images'):
+        test_image = np.random.randint(0, 256, (256, 256), dtype=np.uint8)
+        plt.imsave('test_images/test_image.png', test_image, cmap='gray')
+    
+
+    test_images = [
+        os.path.join('test_images', img) for img in os.listdir('test_images') 
+        if img.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff'))
+    ]
+    
+    encryption = ChaoticImageEncryption(
+        r=3.93,      # Logistic map parameter
+        x0=0.732,    # Initial condition
+        a=0.321,     # Baker map parameter
+        b=0.823      # Baker map parameter
+    )
+    
+
     for image_path in test_images:
         try:
             # Read image in grayscale
