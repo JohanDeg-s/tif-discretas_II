@@ -147,7 +147,11 @@ def calculate_psnr(original, reconstructed):
 def main():
     
         # Cargar imagen encriptada
+    # Cargar imagen encriptada
     encrypted_image_path = r"C:\Users\USER\Documents\ultimo tif\RESULTADOS\cameraman_encrypted.png"
+    
+    # Extraer el directorio de la imagen encriptada
+    encrypted_image_dir = os.path.dirname(encrypted_image_path)
     
     # Leer la imagen encriptada
     encrypted_image = np.array(Image.open(encrypted_image_path).convert('L'))
@@ -164,13 +168,14 @@ def main():
         # Desencriptar la imagen
         decrypted_image = encryption.decrypt(encrypted_image)
         
-        # Guardar imagen desencriptada
-        decrypted_filename = "imagen_desencriptada.png"
+        # Guardar imagen desencriptada en la misma carpeta
+        decrypted_filename = os.path.join(encrypted_image_dir, "imagen_desencriptada.png")
         plt.imsave(decrypted_filename, decrypted_image, cmap='gray')
         
         # Mostrar la imagen desencriptada
+        print(f"Imagen desencriptada guardada en: {decrypted_filename}")
         plt.imshow(decrypted_image, cmap='gray')
-        plt.title('Desencriptada')
+        plt.title('Imagen Desencriptada')
         plt.show()
         
     except Exception as e:
