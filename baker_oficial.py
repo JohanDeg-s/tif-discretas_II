@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 import os
-
+#crear una carpeta test_images, y guardar todas las imagenes ahi
+#las encriptaciones seran guardadas en una nueva carpeta llamada RESULTADOS
+#para desecnriptar una imagen en especifico, usar las ultimas lineas de codigo 
 class ChaoticImageEncryption:
     def __init__(self, r=3.93, x0=0.732, a=0.321, b=0.823):
 
@@ -201,6 +203,15 @@ def main():
         
         except Exception as e:
             print(f"Error{image_path}: {e}")
+#des
+
 
 if __name__ == "__main__":
     main()
+#SI SE NECESITA DESECNRIPTAR UNA IMAGEN 
+"""
+imagen_encriptada = np.array(Image.open("RESULTADOS\\mandrill_encrypted.png").convert('L'))
+encryption = ChaoticImageEncryption(r=3.99, x0=0.732, a=0.321, b=0.823)
+imagen_desencriptada = encryption.decrypt(imagen_encriptada)
+plt.imsave("desencriptado.jpg", imagen_desencriptada, cmap='gray')
+"""
